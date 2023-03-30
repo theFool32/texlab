@@ -174,13 +174,23 @@ impl<'db> CompletionBuilder<'db> {
             .find_entry_type(&entry.type_token()?.text()[1..])
             .map_or(BibtexEntryTypeCategory::Misc, |ty| ty.category);
 
-        let code = entry.syntax().text().to_string();
+        // let code = entry.syntax().text().to_string();
+        let mut code = String::from("");
+        // use only `title` for `filterText`
+        for field in entry.fields() {
+            let key = field.syntax().text().to_string();
+            if key.starts_with("title") {
+               code.push_str(&(&key)[6..]);
+               break;
+            }
+        }
         let filter_text = format!(
-            "{} {}",
+            "{} -> {}",
             key,
-            WHITESPACE_REGEX
-                .replace_all(&code.replace(['{', '}', ',', '='], " "), " ")
-                .trim(),
+            &code.trim()
+            // WHITESPACE_REGEX
+            //    .replace_all(&code.replace(['{', '}', ',', '='], " "), " ")
+            //    .trim(),
         );
 
         let score = self.matcher.fuzzy_match(&filter_text, &self.text_pattern)?;
@@ -490,7 +500,8 @@ impl<'db> CompletionBuilder<'db> {
                 filter_text,
                 category,
             } => CompletionItem {
-                label: key.clone(),
+                // label: key.clone(),
+                label: filter_text.clone(),
                 kind: Some(Structure::Entry(category).completion_kind()),
                 filter_text: Some(filter_text.clone()),
                 sort_text: Some(filter_text),
@@ -764,4 +775,4 @@ pub(crate) enum CompletionItemData {
     Citation { uri: Url, key: String },
 }
 
-static WHITESPACE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("\\s+").unwrap());
+// static WHITESPACE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("\\s+").unwrap());
