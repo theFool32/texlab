@@ -187,10 +187,9 @@ impl<'db> CompletionBuilder<'db> {
         let filter_text = format!(
             "{} -> {}",
             key,
-            &code.trim()
-            // WHITESPACE_REGEX
-            //    .replace_all(&code.replace(['{', '}', ',', '='], " "), " ")
-            //    .trim(),
+            WHITESPACE_REGEX
+               .replace_all(&code.replace(['{', '}', ',', '='], " "), " ")
+               .trim(),
         );
 
         let score = self.matcher.fuzzy_match(&filter_text, &self.text_pattern)?;
@@ -775,4 +774,4 @@ pub(crate) enum CompletionItemData {
     Citation { uri: Url, key: String },
 }
 
-// static WHITESPACE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("\\s+").unwrap());
+static WHITESPACE_REGEX: Lazy<Regex> = Lazy::new(|| Regex::new("\\s+").unwrap());
